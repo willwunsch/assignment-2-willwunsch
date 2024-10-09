@@ -3,12 +3,13 @@
 #include <stdint.h>
 
 // Fill the below values with right values
-#define JBOD_NUM_DISKS            1
-#define JBOD_DISK_SIZE            1
-#define JBOD_BLOCK_SIZE           1
-#define JBOD_NUM_BLOCKS_PER_DISK  1
+#define JBOD_NUM_DISKS 16
+#define JBOD_DISK_SIZE 65536 // 256 * 256 = 65536
+#define JBOD_BLOCK_SIZE 256
+#define JBOD_NUM_BLOCKS_PER_DISK 256
 
-typedef enum {
+typedef enum
+{
   JBOD_MOUNT,
   JBOD_UNMOUNT,
   JBOD_SEEK_TO_DISK,
@@ -19,7 +20,8 @@ typedef enum {
   JBOD_NUM_CMDS,
 } jbod_cmd_t;
 
-typedef enum {
+typedef enum
+{
   JBOD_NO_ERROR,
   JBOD_UNMOUNTED,
   JBOD_ALREADY_MOUNTED,
