@@ -112,7 +112,7 @@ int mdadm_read(uint32_t start_addr, uint32_t read_len, uint8_t *read_buf)
       FinalSize = size2;
     }
 
-        memcpy((read_buf + TotalLenReadCounter), (tmp_buf + Offset), FinalSize);
+    memcpy((read_buf + TotalLenReadCounter), (tmp_buf + Offset), FinalSize);
 
     TotalLenReadCounter += FinalSize;
 
