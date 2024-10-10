@@ -66,52 +66,63 @@ int mdadm_read(uint32_t start_addr, uint32_t read_len, uint8_t *read_buf)
 
   if (start_addr + read_len > TotalSize)
   {
-    return -1;
+    return -1; //Out of bounds
   }
   if (read_len > 1024)
   {
-    return -2;
+    return -2; //Exceeds Maximum read length
   }
   if (MOUNT_STATUS == 0)
   {
-    return -3;
+    return -3; //Unmounted
   }
   if (read_len > 0 && read_buf == NULL)
   {
-    return -4;
+    return -4; //Invalid Buffer or read_len invalid length
   }
 
   while (remaining_read_len > 0)
   {
+    
     uint32_t DiskID = start_addr / JBOD_DISK_SIZE;
     uint32_t BlockID = (start_addr % JBOD_DISK_SIZE) / JBOD_BLOCK_SIZE;
     uint32_t Offset = (start_addr % JBOD_DISK_SIZE) % JBOD_BLOCK_SIZE;
 
-    int bit = operator(DiskID, 0, JBOD_SEEK_TO_DISK);
+    //Seek Correct Disk
+    int bit = operator(DiskID, 0, JBOD_SEEK_TO_DISK); // SEEK DISK BIT (update bit)
+    if (jbod_operation(bit, NULL) == -1)
+    {
+      return -4; //Seek Disk Failed
+    }
 
-    jbod_operation(bit, NULL);
+    //Seek Correct Block
+    bit = operator(0, BlockID, JBOD_SEEK_TO_BLOCK); // SEEK BLOCK BIT (update bit)
+    if (jbod_operation(bit, NULL) == -1)
+    {
+      return -4; //Seek Block Failed
+    }
 
-    bit = operator(0, BlockID, JBOD_SEEK_TO_BLOCK);
+    //Read Block into tmp_buf
+    bit = operator(0, 0, JBOD_READ_BLOCK); // READ BLOCK BIT (update bit)
+    if (jbod_operation(bit, tmp_buf) == -1)
+    {
+      return -4; //Read Block Failed
+    }
 
-    jbod_operation(bit, NULL);
-
-    bit = operator(0, 0, JBOD_READ_BLOCK);
-
-    jbod_operation(bit, tmp_buf);
-
-    int size = JBOD_BLOCK_SIZE - Offset;
-    int size2 = remaining_read_len;
+    //Decide number of bits needed to be read
+    int readSize = JBOD_BLOCK_SIZE - Offset;
     int FinalSize;
 
-    if (size2 >= size)
+    if (remaining_read_len >= readSize)
     {
-      FinalSize = size;
+      FinalSize = readSize;
     }
-    if (size >= size2)
+    if (readSize >= remaining_read_len)
     {
-      FinalSize = size2;
+      FinalSize = remaining_read_len;
     }
 
+    //copy from tmp_buf to read_buf
     memcpy((read_buf + TotalLenReadCounter), (tmp_buf + Offset), FinalSize);
 
     TotalLenReadCounter += FinalSize;
