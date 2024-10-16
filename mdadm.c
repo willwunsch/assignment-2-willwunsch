@@ -4,7 +4,10 @@
 #include "mdadm.h"
 #include "jbod.h"
 
+//Holds the Mount Status, 1 if Mounted, 0 if Unmounted
 static int MOUNT_STATUS = 0;
+
+//Helper function to control the jbod operation
 int operator(int DiskID, int BlockID, int Command)
 {
   int op = DiskID | BlockID << 4 | Command << 12;
@@ -20,17 +23,17 @@ int mdadm_mount(void)
   {
     if (jbod_operation(bit, NULL) == 0)
     {
-      MOUNT_STATUS++;
+      MOUNT_STATUS++; //MOUNT Successful
       return 1;
     }
     else
     {
-      return -1;
+      return -1; //MOUNT Unsuccessful
     }
   }
   else
   {
-    return -1;
+    return -1; //MOUNT called while already mounted (error)
   }
 }
 
@@ -43,17 +46,17 @@ int mdadm_unmount(void)
   {
     if (jbod_operation(bit, NULL) == 0)
     {
-      MOUNT_STATUS--;
-      return 1;
+      MOUNT_STATUS--; //UNMOUNT Successful
+      return 1; 
     }
     else
     {
-      return -1;
+      return -1; //UNMOUNT Unsuccessful
     }
   }
   else
   {
-    return -1;
+    return -1; //UNMOUNT called while already mounted (error)
   }
 }
 
@@ -80,7 +83,7 @@ int mdadm_read(uint32_t start_addr, uint32_t read_len, uint8_t *read_buf)
   {
     return -4; //Invalid Buffer or read_len invalid length
   }
-
+  
   while (remaining_read_len > 0)
   {
     
